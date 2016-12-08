@@ -1,0 +1,16 @@
+---
+# tasks file for aurora-worker
+
+- name: Check if pache Aurora eecutor v0.16.0 is installed
+  command: dpkg-query -W aurora-executor
+  register: aurora_executor_check_deb
+  failed_when: aurora_executor_check_deb.rc > 1
+  changed_when: aurora_executor_check_deb.rc == 1
+
+- name: Install Apache Aurora executor package for Ubuntu Trusty v.0.16.0
+  apt:
+    deb: https://apache.bintray.com/aurora/ubuntu-trusty/aurora-executor_0.16.0_amd64.deb
+  when: aurora_executor_check_deb.rc == 1
+
+- name: Ensure that the aurora observer is configured to use the correct mesos workdir
+  lineinfile: dest=/etc/default/thermos regexp="^MESOS_ROOT=" line="MESOS_ROOT=/tmp/mesos"

@@ -1,0 +1,50 @@
+---
+# Task file for role mesos-agent
+
+- name: Make sure the add-apt-repository command from the software-properties-common package is available
+  apt: name=software-properties-common state=latest
+
+- name: Make sure the GPG Key for Mesosphere is known to APT
+  apt_key: keyserver=keyserver.ubuntu.com id=E56151BF state=present
+
+- name: Make sure Oracle Java 8 Repository is in the list of repos
+  apt_repository: repo='ppa:webupd8team/java' state=present
+
+- name: Make sure Mesosphere APT Repository is in the list of repos
+  apt_repository: repo='deb http://repos.mesosphere.com/ubuntu trusty main' state=present update_cache=yes
+
+- name: Ensure auto-accept for the Oracle Java 8 license is set
+  shell: echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | tee /etc/oracle-java-8-licence-acceptance | /usr/bin/debconf-set-selections
+  args:
+    creates: /etc/oracle-java-8-licence-acceptance
+
+- name: Ensure latest Oracle Java 8 is installed and set as system-wide default
+  apt: name={{item}} state=latest
+  with_items:
+    - oracle-java8-installer
+    - ca-certificates
+    - oracle-java8-set-default
+
+- name: Make sure the mesos Package is installed
+  apt: name=mesos state=present
+
+- name: Make sure zookeeper service is not running and disabled
+  service: name=zookeeper state=stopped enabled=no
+
+- name: Ensure /etc/mesos/zk file is configured properly
+  template: src=mesos/zk.j2 dest=/etc/mesos/zk owner=root group=root mode="u=rwx,g=rx,o=rx"
+
+- name: Ensure /etc/mesos-agent/hostname file is configured properly
+  template: src=mesos-agent/hostname.j2 dest=/etc/mesos-slave/hostname owner=root group=root mode="u=rwx,g=rx,o=rx"
+
+- name: Ensure /etc/mesos-agent/containerizers file is configured properly
+  template: src=mesos-agent/containerizers.j2 dest=/etc/mesos-slave/containerizers owner=root group=root mode="u=rwx,g=rx,o=rx"
+
+- name: Make sure mesos-master service is stopped and set to not run on booth
+  service: name="mesos-master" state=stopped enabled=no
+
+- name: Ensure mesos-slave service is started
+  service: name="mesos-slave" state=restarted enabled=yes
+
+- name: Install Docker Cleaner Daily Cron-Job
+  copy: src=docker-cleanup dest=/etc/cron.daily/docker-cleanup mode=a+x

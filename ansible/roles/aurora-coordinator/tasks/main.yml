@@ -1,0 +1,31 @@
+---
+# tasks file for aurora-coordinator
+
+- name: Check if pache Aurora scheduler v0.16.0 is installed
+  command: dpkg-query -W aurora-scheduler
+  register: aurora_scheduler_check_deb
+  failed_when: aurora_scheduler_check_deb.rc > 1
+  changed_when: aurora_scheduler_check_deb.rc == 1
+
+- name: Install Apache Aurora scheduler package for Ubuntu Trusty v.0.16.0
+  apt:
+    deb: https://apache.bintray.com/aurora/ubuntu-trusty/aurora-scheduler_0.16.0_amd64.deb
+  when: aurora_scheduler_check_deb.rc == 1
+
+- name: Ensure aurora-scheduler service is stopped for now
+  service: name="aurora-scheduler" state=stopped
+
+- name: Determine whether /var/lib/aurora/scheduler/db exists
+  stat: path=/var/lib/aurora/scheduler/db
+  register: auroraDBDir
+
+- name: Ensure that the aurora-scheduler database exists
+  file: path=/var/lib/aurora/scheduler/db state=directory mode=0755 owner=aurora
+  when: auroraDBDir.stat.exists == False
+
+- name: Ensure that the aurora-scheduler database is properly initialized
+  shell: sudo -u aurora mesos-log initialize --path=/var/lib/aurora/scheduler/db
+  when: auroraDBDir.stat.exists == False
+
+- name: Ensure aurora-scheduler service is enabled and started on system start
+  service: name="aurora-scheduler" state=started enabled=yes

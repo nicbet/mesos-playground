@@ -1,0 +1,4 @@
+---
+# Handlers for role mesos-agent
+- name: restart zookeeper
+  service: name=zookeeper state=restarted

@@ -1,0 +1,14 @@
+---
+# Default vars file for role mesos-master
+
+# Used in templates/zookeeper/myid.j2
+# and     templates/zookeeper/zoo.cfg.j2
+zookeeper_id: "1"
+
+# Used in templates/mesos/zk.j2
+# and     templates/zookeeper/zoo.cfg.j2
+zookeeper_client_port: "2181"
+
+# Used in templates/mesos/zoo.cfg.j2
+zookeeper_follower_port: "2888"
+zookeeper_election_port: "3888"

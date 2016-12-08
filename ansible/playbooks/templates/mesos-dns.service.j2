@@ -1,0 +1,12 @@
+[Unit]
+Description=MesosDNS server
+
+[Service]
+ExecStart=/opt/mesos-dns/mesos-dns -config=/opt/mesos-dns/config.json
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=process
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+Alias=mesos-dns.service

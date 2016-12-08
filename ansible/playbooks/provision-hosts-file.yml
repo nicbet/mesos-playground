@@ -1,0 +1,17 @@
+---
+# File provision-hosts-file.yml
+- hosts: all
+  sudo: yes
+  gather_facts: yes
+  remote_user: vagrant
+
+  tasks:
+
+  - name: Template out hosts known in inventory to /etc/hosts file
+    template: src=templates/hosts.j2 dest=/etc/hosts owner=root group=root mode="u=rw,g=r,o=r"
+
+  - name: Ensure /etc/hosts has an entry for eth1 IP address
+    lineinfile: dest=/etc/hosts line="{{ ansible_eth1.ipv4.address }}  {{ ansible_hostname }}  {{ ansible_hostname}}"
+
+  - name: Ensure /etc/hosts does not have a line '127.0.1.1 $HOSTNAME'
+    lineinfile: dest=/etc/hosts regexp="^127.0.1.1.*{{ ansible_hostname}}" state=absent

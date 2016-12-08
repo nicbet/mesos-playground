@@ -1,0 +1,41 @@
+---
+# Playbook: Deploys mesos-dns service on the master nodes and updates the
+#           /etc/resolv.conf of all slave nodes to make DNS resolution
+#           accessible within the cluster for Mesos tasks.
+
+- hosts: mesos-masters
+  sudo: yes
+  remote_user: vagrant
+
+  tasks:
+  - name: Ensure Directory /opt/mesos-dns does exist
+    file: path=/opt/mesos-dns state=directory mode=0755
+
+  - name: Download Mesos-DNS 0.6.0 release from Github
+    get_url:
+      url: https://github.com/mesosphere/mesos-dns/releases/download/v0.6.0/mesos-dns-v0.6.0-linux-amd64
+      dest: /opt/mesos-dns/mesos-dns
+      mode: u=rwx,g=rx,o=rx
+
+  - name: Upload Mesos-DNS configuration file to /opt/mesos-dns/config.json
+    template:
+      src: mesos-dns.config.json.j2
+      dest: /opt/mesos-dns/config.json
+
+  - name: Upload Mesos-DNS init script to /etc/init/mesos-dns.conf
+    template:
+      src: mesos-dns.upstart.j2
+      dest: /etc/init/mesos-dns.conf
+
+  - name: Make sure the Mesos-DNS service is enabled
+    service: name="mesos-dns" state=started enabled=yes
+
+- hosts: mesos-agents
+  sudo: yes
+  remote_user: vagrant
+
+  tasks:
+  - name: Update /etc/resolv.conf
+    template:
+      src: mesos-dns.slave.resolv.conf.j2
+      dest: /etc/resolv.conf

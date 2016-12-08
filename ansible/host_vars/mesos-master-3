@@ -1,0 +1,3 @@
+---
+# Host Vars for mesos-master-3 node
+zookeeper_id: "3"

@@ -1,0 +1,13 @@
+description "Weave-Net Service"
+author "Nicolas Bettenburg"
+
+start on filesystem or runlevel [2345]
+stop on shutdown
+
+script
+  exec /usr/local/bin/weave launch --no-restart mesos-master-1
+end script
+
+pre-stop script
+  exec /usr/local/bin/weave stop
+end script

@@ -1,0 +1,3 @@
+---
+# Default vars file for role mesos-agent
+zookeeper_id: "1"

@@ -1,0 +1,45 @@
+---
+# Playbook: Deploys weave-net overlay network on all cluster nodes
+
+- hosts: mesos-masters
+  sudo: yes
+  remote_user: vagrant
+  tasks:
+  - name: Install weave binary to /usr/local/bin/weave
+    get_url:
+      url: https://github.com/weaveworks/weave/releases/download/latest_release/weave
+      dest: /usr/local/bin/weave
+      validate_certs: no
+      mode: u=rwx,g=rx,o=rx
+  - name: Upload Weave-Net init script to /etc/init/weave-net.conf
+    template:
+      src: weave-net.upstart.j2
+      dest: /etc/init/weave-net.conf
+  - name: Make sure the Weave-net service is enabled
+    service: name="weave-net" state=started enabled=yes
+
+- hosts: mesos-agents
+  sudo: yes
+  remote_user: vagrant
+  tasks:
+  - name: Install weave binary to /usr/local/bin/weave
+    get_url:
+      url: https://github.com/weaveworks/weave/releases/download/latest_release/weave
+      dest: /usr/local/bin/weave
+      validate_certs: no
+      mode: u=rwx,g=rx,o=rx
+  - name: Upload Weave-Net init script to /etc/init/weave-net.conf
+    template:
+      src: weave-net.upstart.j2
+      dest: /etc/init/weave-net.conf
+  - name: Make sure the Weave-net service is enabled
+    service: name="weave-net" state=started enabled=yes
+  - name: Make sure the Mesos uses the Weave Docker Socket
+    template:
+      src: weave-net.docker_socket.j2
+      dest: /etc/mesos-slave/docker_socket
+      owner: root
+      group: root
+      mode: u=rwx,g=rx,o=rx
+  - name: Make sure the Mesos Agent service is restarted to pick up the weave network
+    service: name="mesos-slave" state=restarted

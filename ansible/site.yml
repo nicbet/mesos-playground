@@ -1,0 +1,22 @@
+---
+# Site file for mesos-marathon cluster
+
+# Mesos Master Nodes, configured in inventory.ini group [mesos-masters]
+- hosts: mesos-masters
+  sudo: yes
+  roles:
+    - mesos-master
+    - docker
+
+# Mesos Slave Nodes, configured in inventory.ini group [mesos-agents]
+- hosts: mesos-agents
+  sudo: yes
+  roles:
+    - mesos-agent
+    - docker
+
+# Vamp Gateway Routers, configures in inventory.ini group [vamp-vga]
+- hosts: vamp-vga
+  sudo: yes
+  roles:
+    - docker
